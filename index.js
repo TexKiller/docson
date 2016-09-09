@@ -18,7 +18,7 @@ var docson = docson || {};
 
 var $=require("jquery");
 var Handlebars=require("handlebars");
-var highlight=require("./lib/highlight");
+var highlight=require("highlight.js");
 var jsonpointer=require("jsonpointer.js");
 var marked=require("marked");
 var traverse=require("traverse");
