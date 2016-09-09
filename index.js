@@ -16,7 +16,6 @@
 
 var docson = docson || {};
 
-docson.templateBaseUrl="templates";
 var $=require("jquery");
 var Handlebars=require("handlebars");
 var highlight=require("./lib/highlight");
