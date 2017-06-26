@@ -16,10 +16,9 @@
 
 var docson = docson || {};
 
-docson.templateBaseUrl="templates";
 var $=require("jquery");
 var Handlebars=require("handlebars");
-var highlight=require("./lib/highlight");
+var highlight=require("highlight.js");
 var jsonpointer=require("jsonpointer.js");
 var marked=require("marked");
 var traverse=require("traverse");
@@ -463,7 +462,7 @@ docson.doc = function(element, schema, ref, baseUrl) {
     init();
     ready.done(function() {
         if(typeof element == "string") {
-            element = $("#"+element);
+            element = "#"+element;
         }
         element=$(element);
         if(typeof schema == "string") {
