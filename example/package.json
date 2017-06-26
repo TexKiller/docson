@@ -1,28 +1,18 @@
 {
-  "name": "docson-example",
-  "version": "1.0.0",
+  "name": "node-docson-example",
+  "version": "0.1.0",
   "private": true,
-  "description": "Simple docson example",
+  "description": "Simple node-docson example",
   "main": "example.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "browserify example.js -o bundle.js",
-    "start": "beefy example.js:bundle.js 7890"
+    "prepare": "node example.js"
   },
   "keywords": [
-    "docson",
+    "node-docson",
     "example"
   ],
-  "browserify": {
-    "transform": [
-      "brfs"
-    ]
-  },
   "author": "Laurent Bovet",
   "license": "Apache-2.0",
-  "devDependencies": {
-    "beefy": "^2.1.6",
-    "brfs": "^1.4.3",
-    "browserify": "^13.0.0"
-  }
+  "devDependencies": {}
 }

@@ -1,24 +1,25 @@
 {
-  "name": "docson",
-  "version": "1.2.0",
-  "description": "Documentation for your JSON types",
-  "main": "docson.js",
+  "name": "node-docson",
+  "version": "0.1.0",
+  "description": "Documentation for your JSON types on node",
+  "main": "index.js",
   "directories": {
     "example": "examples",
     "test": "tests"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "cd tests && node test.js && cd ..",
     "prepublish": "require-self"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/rom1504/docson/tree/npm"
+    "url": "https://github.com/TexKiller/node-docson"
   },
   "keywords": [
     "json",
     "schema",
-    "documentation"
+    "documentation",
+    "node"
   ],
   "browserify": {
     "transform": [
@@ -39,8 +40,10 @@
     "handlebars": "^4.0.5",
     "highlight.js": "^9.6.0",
     "jquery": "^2.2.2",
+    "jsdom": "^11.0.0",
     "jsonpointer.js": "^0.4.0",
     "marked": "^0.3.5",
+    "sync-request": "^4.1.0",
     "traverse": "^0.6.6"
   }
 }
