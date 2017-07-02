@@ -1,10 +1,10 @@
-#  Docson
+#  Node-Docson
 
 <p align='right'>A <a href="http://www.swisspush.org">swisspush</a> project <a href="http://www.swisspush.org" border=0><img align="top"  src='https://1.gravatar.com/avatar/cf7292487846085732baf808def5685a?s=32'></a></p>
 
 [![NPM version](https://img.shields.io/npm/v/docson.svg)](https://www.npmjs.com/package/docson)
 
-Documentation for your JSON types.
+Documentation for your JSON types on Node.js.
 
 Give Docson a JSON schema and it will generate a [beautiful documentation](http://lbovet.github.io/docson/index.html#/docson/examples/example.json).
 
@@ -15,16 +15,15 @@ Give Docson a JSON schema and it will generate a [beautiful documentation](http:
 
 ## Installation
 
-`npm install docson`
+`npm install node-docson`
 
 ## Usage
 
 Example:
 
 ```js
-var docson=require("docson");
+var docson=require("docson")();
 
-var element=document.body.appendChild(document.createElement("div"));
 var schema={
   "title": "Example Schema",
   "type": "object",
@@ -44,29 +43,9 @@ var schema={
   "required": ["firstName", "lastName"]
 };
 
-docson.doc(element,schema);
+var doc = docson.doc(null,schema);
+fs.writeFileSync("./index.html", doc.documentElement.outerHTML);
 ```
-
-with a simple html file such as 
-
-```html
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Docson</title>
-</head>
-
-<body>
-<script src="bundle.js"></script>
-</body>
-
-</html>
-```
-
-Browserify can be used to generate the bundle.js.
-
-See [Example](example/)
 
 ## API
 
@@ -89,9 +68,4 @@ Not implemented:
 
 ## Development
 
-* [All tests](http://lbovet.github.io/docson/tests/test.html)
-
 Please pull-request your failing schemas in the `tests/` folder and open an issue describing the expected result.
-
-[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/lbovet/docson/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
-
