@@ -1,6 +1,6 @@
 const jsdom = require("jsdom");
-const { JSDOM } = jsdom;
-var document = new JSDOM('<html><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"></head></html>').window.document;
+const JSDOM = jsdom.JSDOM;
+var document = new JSDOM('<html><head><title>node-docson test</title><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"></head></html>').window.document;
 var docson = require("node-docson")(document);
 var fs = require("fs");
 
@@ -23,4 +23,4 @@ tests.forEach(function (test) {
   });
 });
 
-fs.writeFileSync("./test.html", document.documentElement.outerHTML);
+fs.writeFileSync("./test.html", document.documentElement.outerHTML, "utf8");

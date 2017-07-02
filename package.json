@@ -1,15 +1,17 @@
 {
   "name": "node-docson",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Documentation for your JSON types on node",
   "main": "index.js",
+  "browser": "node-docson.js",
   "directories": {
     "example": "examples",
     "test": "tests"
   },
   "scripts": {
     "test": "cd tests && node test.js && cd ..",
-    "prepublish": "require-self"
+    "test-browserify": "cd tests && browserify test-browserify.js -o test-browserify-bundle.js && cd ..",
+    "prepare": "require-self"
   },
   "repository": {
     "type": "git",
@@ -26,20 +28,21 @@
       "brfs"
     ]
   },
-  "author": "Laurent Bovet",
+  "author": "Faister Cabrera Carvalho",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/lbovet/docson/issues"
+    "url": "https://github.com/TexKiller/node-docson/issues"
   },
-  "homepage": "https://github.com/lbovet/docson#readme",
+  "homepage": "https://github.com/TexKiller/node-docson#readme",
   "devDependencies": {
     "brfs": "^1.4.3",
+    "browserify": "^14.4.0",
+    "jquery": "^2.2.2",
     "require-self": "^0.1.0"
   },
   "dependencies": {
     "handlebars": "^4.0.5",
     "highlight.js": "^9.6.0",
-    "jquery": "^2.2.2",
     "jsdom": "^11.0.0",
     "jsonpointer.js": "^0.4.0",
     "marked": "^0.3.5",

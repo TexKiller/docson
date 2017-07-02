@@ -2,9 +2,7 @@
 .DS_Store
 /example/index.html
 /example/package-lock.json
-/test/test.html
-docson.iml
+/tests/test.html
 /nbproject
 /node_modules
-/package-lock.json
-bundle.js
+/tests/test-browserify-bundle.js
