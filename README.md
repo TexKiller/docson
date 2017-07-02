@@ -8,8 +8,8 @@ Give Docson a JSON schema and it will generate a [beautiful documentation](http:
 
 ## Features
 * [JSON schema](http://json-schema.org/) v4 keywords.
-* Runs entirely in the browser.
-* Render schema descriptions with markdown
+* Runs on Node.js and in the browser.
+* Render schema descriptions with markdown.
 
 ## Installation
 
