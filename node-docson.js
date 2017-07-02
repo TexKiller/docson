@@ -478,279 +478,281 @@ module.exports = function (doc, jQuery) {
         }
 
         docson.doc = function(element, schema, ref, baseUrl) {
-            var d = jQuery.Deferred();
-            if(baseUrl === undefined) baseUrl='';
-            init();
-            ready.done(function() {
-                if (!element) {
-                    element=doc.createElement("DIV");
-                    doc.body.appendChild(element);
-                } else {
-                    if (typeof element == "string") {
-                        element='#'+element;
-                    }
-                }
-                element=jQuery(element);
-                console.log(element.get(0));
-                if(typeof schema == "string") {
-                    schema = JSON.parse(schema);
-                }
-
-                var refsPromise = jQuery.Deferred().resolve().promise();
-                var refs = {};
-
-
-                var renderBox = function() {
-                    stack.push(refs);
-                    var target = schema;
-                    if(ref) {
-                        ref = ref[0] !== '/' ? '/'+ref : ref;
-                        target = jsonpointer.get(schema, ref);
-                        stack.push( schema );
-                    }
-                    target.root = true;
-                    target.__ref = "<root>";
-                    prerender(target);
-                    var html = boxTemplate(target);
-
-                    if(ref) {
-                        stack.pop();
-                    }
-                    stack.pop();
-
-                    element.addClass("docson").html(html);
-
-                    var resizeHandler = element.get(0).onresize;
-                    function resized() {
-                        if(resizeHandler) {
-                            var box = element.find(".box").first();
-                            element.get(0).onresize(box.outerWidth(), box.outerHeight());
+            if (schema) {
+                var d = jQuery.Deferred();
+                if(baseUrl === undefined) baseUrl='';
+                init();
+                ready.done(function() {
+                    if (!element) {
+                        element=doc.createElement("DIV");
+                        doc.body.appendChild(element);
+                    } else {
+                        if (typeof element == "string") {
+                            element='#'+element;
                         }
                     }
-                    element.get(0).resized = resized;
-                    resized();
-
-                    if(highlight) {
-                        element.find(".json-schema").each(function(k, schemaElement) {
-                            highlight.highlightSchema(schemaElement);
-                        });
+                    element=jQuery(element);
+                    console.log(element.get(0));
+                    if(typeof schema == "string") {
+                        schema = JSON.parse(schema);
                     }
-                    element.find(".box-title").each(function() {
-                        var ref = jQuery(this).attr("ref");
+
+                    var refsPromise = jQuery.Deferred().resolve().promise();
+                    var refs = {};
+
+
+                    var renderBox = function() {
+                        stack.push(refs);
+                        var target = schema;
                         if(ref) {
-                            if(window.location.href.indexOf("docson/index.html") > -1) {
-                                jQuery(this).find(".box-name").css("cursor", "pointer").attr("title", "Open in new window")
-                                .hover(
-                                    function(){ jQuery(this).addClass('link') },
-                                    function(){ jQuery(this).removeClass('link') })
-                                .click(function() {
-                                        var url = window.location.href+"$$expand";
-                                        if(ref !=="<root>") {
-                                        url = url.replace(/(docson\/index.html#[^\$]*).*/, "$1$"+ref+"$$expand");
-                                        }
-                                        var w;
-                                        function receiveMessage(event) {
-                                        if (event.data.id && event.data.id == "docson" && event.data.action == "ready") {
-                                            w.postMessage({ id: "docson", action: "load", definitions: schema, type: event.data.url.split("$")[1], expand: true}, "*");
-                                        }
-                                        }
-                                        window.addEventListener("message", receiveMessage, false);
-                                        w = window.open(url, "_blank");
-                                });
+                            ref = ref[0] !== '/' ? '/'+ref : ref;
+                            target = jsonpointer.get(schema, ref);
+                            stack.push( schema );
+                        }
+                        target.root = true;
+                        target.__ref = "<root>";
+                        prerender(target);
+                        var html = boxTemplate(target);
+
+                        if(ref) {
+                            stack.pop();
+                        }
+                        stack.pop();
+
+                        element.addClass("docson").html(html);
+
+                        var resizeHandler = element.get(0).onresize;
+                        function resized() {
+                            if(resizeHandler) {
+                                var box = element.find(".box").first();
+                                element.get(0).onresize(box.outerWidth(), box.outerHeight());
                             }
                         }
-                    });
-                    var script = doc.createElement("SCRIPT");
-                    script.type = 'text/javascript';
-                    script.innerHTML = `
-    function getByClass(element, className, callback) {
-        var elements = element.getElementsByClassName(className);
-        for (var e = 0; e < elements.length; ++e) {
-            callback(elements[e]);
-        }
-    }
+                        element.get(0).resized = resized;
+                        resized();
 
-    function deSelect() {
-        getByClass(document, 'box-selected', function (selected) {
-            if (selected) {
-                selected.className = selected.className.replace(' box-selected', '');
-            }
-        });
-    }
-
-    function displayButtons(element, display) {
-        element.getElementsByClassName('source-button')[0].style.display = display;
-        element.getElementsByClassName('expand-button')[0].style.display = display;
-    }
-
-    function toggleClass(element, cssClass) {
-        if (element.className.indexOf(cssClass) > -1) {
-            element.className = element.className.replace(cssClass, "");
-        } else {
-            element.className += " " + cssClass;
-        }
-    }
-
-    function toggleDisplay(element) {
-        var display = element.currentStyle ? element.currentStyle.display : getComputedStyle(element, null).display;
-        if (display == '' || display == 'block') {
-            element.style.display = 'none';
-        } else {
-            element.style.display = 'block';
-        }
-    }
-
-    function expand(element) {
-        var boxId = element.getAttribute("boxid");
-        toggleClass(element, "signature-type-expanded");
-        var bc = element.parentElement.parentElement.parentElement.getElementsByClassName("signature-box-container")[0];
-        var boxes = bc.children;
-        for (var b = 0; b < boxes.length; ++b) {
-            if (boxes[b].getAttribute("boxid") == boxId) {
-                toggleDisplay(boxes[b]);
-                break;
-            }
-        }
-    }
-
-    function setDisplay(element, display) {
-        element.style.display = display;
-    }
-
-    function setClass(element, className, remove) {
-        if (!remove) {
-            if (element.className.indexOf(className) == -1) {
-                element.className += " " + className;
-            }
-        } else {
-            if (element.className.indexOf(className) > -1) {
-                element.className = element.className.replace(className, "");
-            }
-        }
-    }
-
-    function expandButton(element) {
-        if(element.getAttribute("expanded")) {
-            var parent = element.parentElement.parentElement;
-            getByClass(parent, "expand-button", function (eb) {
-                eb.innerHTML = " + ";
-                eb.setAttribute("title", "Expand all");
-            });
-            getByClass(parent, "signature-type-expandable", function (ste) {
-                setClass(ste, "signature-type-expanded", true);
-            });
-            getByClass(parent, "box-container", function (ste) {
-                setDisplay(ste, 'none');
-            });
-            element.removeAttribute("expanded");
-        } else {
-            var parent = element.parentElement.parentElement;
-            getByClass(parent, "expand-button", function (eb) {
-                eb.innerHTML = " - ";
-                eb.setAttribute("title", "Collapse all");
-            });
-            getByClass(parent, "signature-type-expandable", function (ste) {
-                setClass(ste, "signature-type-expanded");
-            });
-            getByClass(parent, "box-container", function (ste) {
-                setDisplay(ste, 'block');
-            });
-            element.setAttribute("expanded", true);
-        }
-    }
-
-    function sourceButton(element) {
-        getByClass(element.parentElement, "box-body", function (bb) {
-            toggleDisplay(bb);
-        });
-        getByClass(element.parentElement, "source", function (source) {
-            toggleDisplay(source);
-        });
-    }
-    `;
-                    doc.getElementsByTagName('head')[0].appendChild(script);
-                    element.find(".box").attr("onmousedown", "deSelect(); this.className += ' box-selected'; event.preventDefault(); return false;");
-                    element.find("body").attr("onmousedown", "deSelect();");
-                    element.find(".box").attr("onmouseenter", "displayButtons(this, 'block');");
-                    element.find(".box").attr("onmouseleave", "displayButtons(this, 'none');");
-                    element.find(".signature-type-expandable").attr("onclick", "expand(this);");
-                    element.find(".expand-button").attr("onclick", "expandButton(this);");
-                    element.find(".source-button").attr("onclick", "sourceButton(this);");
-                };
-
-                var resolveRefsReentrant = function(schema){
-                    traverse(schema).forEach(function(item) {
-                        // Fix Swagger weird generation for array.
-                        if(item && item.$ref == "array") {
-                            delete item.$ref;
-                            item.type ="array";
+                        if(highlight) {
+                            element.find(".json-schema").each(function(k, schemaElement) {
+                                highlight.highlightSchema(schemaElement);
+                            });
                         }
+                        element.find(".box-title").each(function() {
+                            var ref = jQuery(this).attr("ref");
+                            if(ref) {
+                                if(window.location.href.indexOf("docson/index.html") > -1) {
+                                    jQuery(this).find(".box-name").css("cursor", "pointer").attr("title", "Open in new window")
+                                    .hover(
+                                        function(){ jQuery(this).addClass('link') },
+                                        function(){ jQuery(this).removeClass('link') })
+                                    .click(function() {
+                                            var url = window.location.href+"$$expand";
+                                            if(ref !=="<root>") {
+                                            url = url.replace(/(docson\/index.html#[^\$]*).*/, "$1$"+ref+"$$expand");
+                                            }
+                                            var w;
+                                            function receiveMessage(event) {
+                                            if (event.data.id && event.data.id == "docson" && event.data.action == "ready") {
+                                                w.postMessage({ id: "docson", action: "load", definitions: schema, type: event.data.url.split("$")[1], expand: true}, "*");
+                                            }
+                                            }
+                                            window.addEventListener("message", receiveMessage, false);
+                                            w = window.open(url, "_blank");
+                                    });
+                                }
+                            }
+                        });
+                        var script = doc.createElement("SCRIPT");
+                        script.type = 'text/javascript';
+                        script.innerHTML = `
+        function getByClass(element, className, callback) {
+            var elements = element.getElementsByClassName(className);
+            for (var e = 0; e < elements.length; ++e) {
+                callback(elements[e]);
+            }
+        }
 
-                        // Fetch external schema
-                        if(this.key === "$ref") {
-                            var external = false;
-                            //Local meaning local to this server, but not in this file.
-                            var local = false;
-                            if((/^https?:\/\//).test(item)) {
-                                external = true;
+        function deSelect() {
+            getByClass(document, 'box-selected', function (selected) {
+                if (selected) {
+                    selected.className = selected.className.replace(' box-selected', '');
+                }
+            });
+        }
+
+        function displayButtons(element, display) {
+            element.getElementsByClassName('source-button')[0].style.display = display;
+            element.getElementsByClassName('expand-button')[0].style.display = display;
+        }
+
+        function toggleClass(element, cssClass) {
+            if (element.className.indexOf(cssClass) > -1) {
+                element.className = element.className.replace(cssClass, "");
+            } else {
+                element.className += " " + cssClass;
+            }
+        }
+
+        function toggleDisplay(element) {
+            var display = element.currentStyle ? element.currentStyle.display : getComputedStyle(element, null).display;
+            if (display == '' || display == 'block') {
+                element.style.display = 'none';
+            } else {
+                element.style.display = 'block';
+            }
+        }
+
+        function expand(element) {
+            var boxId = element.getAttribute("boxid");
+            toggleClass(element, "signature-type-expanded");
+            var bc = element.parentElement.parentElement.parentElement.getElementsByClassName("signature-box-container")[0];
+            var boxes = bc.children;
+            for (var b = 0; b < boxes.length; ++b) {
+                if (boxes[b].getAttribute("boxid") == boxId) {
+                    toggleDisplay(boxes[b]);
+                    break;
+                }
+            }
+        }
+
+        function setDisplay(element, display) {
+            element.style.display = display;
+        }
+
+        function setClass(element, className, remove) {
+            if (!remove) {
+                if (element.className.indexOf(className) == -1) {
+                    element.className += " " + className;
+                }
+            } else {
+                if (element.className.indexOf(className) > -1) {
+                    element.className = element.className.replace(className, "");
+                }
+            }
+        }
+
+        function expandButton(element) {
+            if(element.getAttribute("expanded")) {
+                var parent = element.parentElement.parentElement;
+                getByClass(parent, "expand-button", function (eb) {
+                    eb.innerHTML = " + ";
+                    eb.setAttribute("title", "Expand all");
+                });
+                getByClass(parent, "signature-type-expandable", function (ste) {
+                    setClass(ste, "signature-type-expanded", true);
+                });
+                getByClass(parent, "box-container", function (ste) {
+                    setDisplay(ste, 'none');
+                });
+                element.removeAttribute("expanded");
+            } else {
+                var parent = element.parentElement.parentElement;
+                getByClass(parent, "expand-button", function (eb) {
+                    eb.innerHTML = " - ";
+                    eb.setAttribute("title", "Collapse all");
+                });
+                getByClass(parent, "signature-type-expandable", function (ste) {
+                    setClass(ste, "signature-type-expanded");
+                });
+                getByClass(parent, "box-container", function (ste) {
+                    setDisplay(ste, 'block');
+                });
+                element.setAttribute("expanded", true);
+            }
+        }
+
+        function sourceButton(element) {
+            getByClass(element.parentElement, "box-body", function (bb) {
+                toggleDisplay(bb);
+            });
+            getByClass(element.parentElement, "source", function (source) {
+                toggleDisplay(source);
+            });
+        }
+        `;
+                        doc.getElementsByTagName('head')[0].appendChild(script);
+                        element.find(".box").attr("onmousedown", "deSelect(); this.className += ' box-selected'; event.preventDefault(); return false;");
+                        element.find("body").attr("onmousedown", "deSelect();");
+                        element.find(".box").attr("onmouseenter", "displayButtons(this, 'block');");
+                        element.find(".box").attr("onmouseleave", "displayButtons(this, 'none');");
+                        element.find(".signature-type-expandable").attr("onclick", "expand(this);");
+                        element.find(".expand-button").attr("onclick", "expandButton(this);");
+                        element.find(".source-button").attr("onclick", "sourceButton(this);");
+                    };
+
+                    var resolveRefsReentrant = function(schema){
+                        traverse(schema).forEach(function(item) {
+                            // Fix Swagger weird generation for array.
+                            if(item && item.$ref == "array") {
+                                delete item.$ref;
+                                item.type ="array";
                             }
-                            else if((/^[^#]/).test(item)) {
-                                local = true;
-                            } else if(item.indexOf('#') > 0) {
-                                //Internal reference
-                                //Turning relative refs to absolute ones
-                                external = true;
-                                item = baseUrl + item;
-                                this.update(item);
-                            }
-                            if(external){
-                                //External reference, fetch it.
-                                var segments = item.split("#");
-                                refs[item] = null;
-                                var p = jQuery.get(segments[0]).then(function(content) {
-                                    if(typeof content != "object") {
-                                        try {
-                                            content = JSON.parse(content);
-                                        } catch(e) {
-                                            console.error("Unable to parse "+segments[0], e);
+
+                            // Fetch external schema
+                            if(this.key === "$ref") {
+                                var external = false;
+                                //Local meaning local to this server, but not in this file.
+                                var local = false;
+                                if((/^https?:\/\//).test(item)) {
+                                    external = true;
+                                }
+                                else if((/^[^#]/).test(item)) {
+                                    local = true;
+                                } else if(item.indexOf('#') > 0) {
+                                    //Internal reference
+                                    //Turning relative refs to absolute ones
+                                    external = true;
+                                    item = baseUrl + item;
+                                    this.update(item);
+                                }
+                                if(external){
+                                    //External reference, fetch it.
+                                    var segments = item.split("#");
+                                    refs[item] = null;
+                                    var p = jQuery.get(segments[0]).then(function(content) {
+                                        if(typeof content != "object") {
+                                            try {
+                                                content = JSON.parse(content);
+                                            } catch(e) {
+                                                console.error("Unable to parse "+segments[0], e);
+                                            }
                                         }
-                                    }
-                                    if(content) {
-                                        refs[item] = content;
-                                        renderBox();
-                                        resolveRefsReentrant(content);
-                                    }
-                                });
-                            }
-                            else if(local) {
-                                //Local to this server, fetch relative
-                                var segments = item.split("#");
-                                refs[item] = null;
-                                var p = jQuery.get(baseUrl + segments[0]).then(function(content) {
-                                    if(typeof content != "object") {
-                                        try {
-                                            content = JSON.parse(content);
-                                        } catch(e) {
-                                            console.error("Unable to parse "+segments[0], e);
+                                        if(content) {
+                                            refs[item] = content;
+                                            renderBox();
+                                            resolveRefsReentrant(content);
                                         }
-                                    }
-                                    if(content) {
-                                        refs[item] = content;
-                                        renderBox();
-                                        resolveRefsReentrant(content);
-                                    }
-                                });
+                                    });
+                                }
+                                else if(local) {
+                                    //Local to this server, fetch relative
+                                    var segments = item.split("#");
+                                    refs[item] = null;
+                                    var p = jQuery.get(baseUrl + segments[0]).then(function(content) {
+                                        if(typeof content != "object") {
+                                            try {
+                                                content = JSON.parse(content);
+                                            } catch(e) {
+                                                console.error("Unable to parse "+segments[0], e);
+                                            }
+                                        }
+                                        if(content) {
+                                            refs[item] = content;
+                                            renderBox();
+                                            resolveRefsReentrant(content);
+                                        }
+                                    });
+                                }
                             }
-                        }
-                    });
-                };
+                        });
+                    };
 
-                resolveRefsReentrant(schema);
-                renderBox();
+                    resolveRefsReentrant(schema);
+                    renderBox();
 
-                d.resolve();
-            })
-            d.promise();
+                    d.resolve();
+                })
+                d.promise();
+            }
             return doc;
         }
 
