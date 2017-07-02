@@ -17,7 +17,7 @@ module.exports = function (document, $) {
     if (!document) {
         const jsdom = require("jsdom");
         const { JSDOM } = jsdom;
-        document = new JSDOM(`<!DOCTYPE html><html><head><meta http-equiv="Content-Type" content="text/html;charset=ISO-8859-1"></head></html>`).window.document;
+        document = new JSDOM(`<!DOCTYPE html><html><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"></head></html>`).window.document;
     }
     if (!$) {
         $ = require("jquery")(document.defaultView);
