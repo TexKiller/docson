@@ -20,7 +20,7 @@ Give Docson a JSON schema and it will generate a [beautiful documentation](http:
 Example:
 
 ```js
-var docson=require("docson")();
+var docson=require("node-docson")();
 
 var schema={
   "title": "Example Schema",
