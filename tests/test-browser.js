@@ -1,6 +1,6 @@
-var docson=require("node-docson")();
+var docson = require("node-docson")();
 
-var schema={
+var schema = {
   "title": "Example Schema",
   "type": "object",
   "properties": {
@@ -19,4 +19,4 @@ var schema={
   "required": ["firstName", "lastName"]
 };
 
-docson.doc("element",schema);
+docson.doc(schema, "element");

@@ -10,7 +10,8 @@
   },
   "scripts": {
     "test": "cd tests && node test.js && cd ..",
-    "test-browserify": "cd tests && browserify test-browserify.js -o test-browserify-bundle.js && cd ..",
+    "test-browserify": "browserify tests/test-browser.js -o tests/test-browserify-bundle.js",
+    "test-webpack": "./node_modules/.bin/webpack tests/test-browser.js tests/test-webpack-bundle.js",
     "prepare": "require-self"
   },
   "repository": {
@@ -38,7 +39,9 @@
     "brfs": "^1.4.3",
     "browserify": "^14.4.0",
     "jquery": "^2.2.2",
-    "require-self": "^0.1.0"
+    "require-self": "^0.1.0",
+    "transform-loader": "^0.2.4",
+    "webpack": "^3.1.0"
   },
   "dependencies": {
     "handlebars": "^4.0.5",

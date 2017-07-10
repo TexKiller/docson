@@ -477,7 +477,7 @@ module.exports = function (doc, jQuery) {
             ready.resolve();
         }
 
-        docson.doc = function(element, schema, ref, baseUrl) {
+        docson.doc = function(schema, element, ref, baseUrl) {
             if (schema) {
                 var d = jQuery.Deferred();
                 if(baseUrl === undefined) baseUrl='';

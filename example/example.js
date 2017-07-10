@@ -1,7 +1,7 @@
-var docson=require("node-docson")();
-var fs=require("fs");
+var docson = require("node-docson")();
+var fs = require("fs");
 
-var schema={
+var schema = {
   "title": "Example Schema",
   "type": "object",
   "properties": {
@@ -20,5 +20,5 @@ var schema={
   "required": ["firstName", "lastName"]
 };
 
-var doc = docson.doc(null,schema);
+var doc = docson.doc(schema);
 fs.writeFileSync("./index.html", doc.documentElement.outerHTML);

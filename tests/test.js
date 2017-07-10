@@ -19,7 +19,7 @@ tests.forEach(function (test) {
     if (!item.schema.description) {
       item.schema.description = item.description;
     }
-    docson.doc(element, item.schema, segments[1]);
+    docson.doc(item.schema, element, segments[1]);
   });
 });
 
