@@ -561,9 +561,11 @@ module.exports = function (doc, jQuery) {
                                 }
                             }
                         });
-                        var script = doc.createElement("SCRIPT");
-                        script.type = 'text/javascript';
-                        script.innerHTML = `
+                        if (!doc.getElementById('docson-js')) {
+                            var script = doc.createElement("SCRIPT");
+                            script.id = 'docson-js';
+                            script.type = 'text/javascript';
+                            script.innerHTML = `
         function getByClass(element, className, callback) {
             var elements = element.getElementsByClassName(className);
             for (var e = 0; e < elements.length; ++e) {
@@ -669,7 +671,8 @@ module.exports = function (doc, jQuery) {
             });
         }
         `;
-                        doc.getElementsByTagName('head')[0].appendChild(script);
+                            doc.getElementsByTagName('head')[0].appendChild(script);
+                        }
                         element.find(".box").attr("onmousedown", "deSelect(); this.className += ' box-selected'; event.preventDefault(); return false;");
                         element.find("body").attr("onmousedown", "deSelect();");
                         element.find(".box").attr("onmouseenter", "displayButtons(this, 'block');");
