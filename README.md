@@ -41,19 +41,19 @@ var schema={
   "required": ["firstName", "lastName"]
 };
 
-var doc = docson.doc(null,schema);
+var doc = docson.doc(schema);
 fs.writeFileSync("./index.html", doc.documentElement.outerHTML);
 ```
 
 ## API
 
 ```javascript
-docson.doc(element, schema, ref)
+docson.doc(schema, element, ref)
 ```
 
-* `element` is the element which will host the documentation. Either a DOM element (id or object) or jQuery element.
 * `schema` is the URI or path to the schema or a string containing the schema source itself.
-* `ref` is an optional json-pointer path to a sub-schema.
+* `element` (optional) is the element which will host the documentation. Either a DOM element (id or object) or jQuery element.
+* `ref` (optional) is an json-pointer path to a sub-schema.
 
 
 ## Limitations
