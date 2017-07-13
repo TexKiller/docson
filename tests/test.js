@@ -1,7 +1,5 @@
-const jsdom = require("jsdom");
-const JSDOM = jsdom.JSDOM;
-var document = new JSDOM('<html><head><title>node-docson test</title><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"></head></html>').window.document;
-var docson = require("node-docson")(document);
+var document = new (require("jsdom").JSDOM)('<html><head><title>node-docson test</title><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"></head></html>').window.document;
+var docson = require("node-docson")({ document: document });
 var fs = require("fs");
 
 var tests = ["invoice$Invoice", "enum", "schema", "additionalProperties", "address", "fstab", "basic", "not", "oneOf", "anyOf", "allOf", "example2", "properties", "ref"];
