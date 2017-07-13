@@ -13,14 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-module.exports = function (document, $) {
-    if (!document) {
-        const jsdom = require("jsdom");
-        const { JSDOM } = jsdom;
-        document = new JSDOM(`<!DOCTYPE html><html><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"></head></html>`).window.document;
+"esversion: 6";
+module.exports = function (opt) {
+    if (!opt) {
+        opt = {};
     }
-    if (!$) {
-        $ = require("jquery")(document.defaultView);
+    if (!opt.document) {
+        opt.document = new (require("jsdom").JSDOM)('<!DOCTYPE html><html><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"></head></html>').window.document;
     }
-    return require("./node-docson")(document, $);
+    if (!opt.$) {
+        opt.$ = require("jquery")(opt.document.defaultView);
+    }
+    return require("./node-docson")(opt);
 };

@@ -20,5 +20,5 @@ var schema = {
   "required": ["firstName", "lastName"]
 };
 
-var doc = docson.doc(schema);
-fs.writeFileSync("./index.html", doc.documentElement.outerHTML);
+var element = docson.doc(schema);
+fs.writeFileSync("./index.html", element.ownerDocument.documentElement.outerHTML);

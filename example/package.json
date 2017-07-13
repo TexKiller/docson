@@ -1,12 +1,12 @@
 {
   "name": "node-docson-example",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "private": true,
   "description": "Simple node-docson example",
   "main": "example.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "prepare": "node example.js"
+    "example": "node example.js"
   },
   "keywords": [
     "node-docson",
