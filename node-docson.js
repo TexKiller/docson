@@ -27,28 +27,33 @@ module.exports = function (opt) {
         var docson = docson || {};
         var window = opt.document.defaultView;
 
-        var Handlebars=require("handlebars");
-        var highlight=require("highlight.js").Highlight;
-        var jsonpointer=require("jsonpointer.js");
-        var marked=require("marked");
-        var traverse=require("traverse");
-        var fs=require("fs");
+        var Handlebars = require("handlebars");
+        var highlight = require("highlight.js").Highlight;
+        var jsonpointer = require("jsonpointer.js");
+        var marked = require("marked");
+        var traverse = require("traverse");
+        var fs = require("fs");
 
         var ready = opt.$.Deferred();
         var boxTemplate;
         var signatureTemplate;
         var source;
         var stack = [];
-        var boxes=[];
+        var boxes = [];
 
-        var style=opt.document.createElement("style");
-        style.textContent=fs.readFileSync(__dirname+"/css/docson.css","utf8");
+        var style = opt.document.createElement("style");
+        style.textContent = fs.readFileSync(__dirname + "/css/docson.css","utf8");
         opt.document.head.appendChild(style);
+
+        var script = opt.document.createElement("script");
+        script.type = 'text/javascript';
+        script.textContent = fs.readFileSync(__dirname + "/js/docson.js","utf8");
+        opt.document.head.appendChild(script);
 
         Handlebars.registerHelper('scope', function (schema, options) {
             var result;
             boxes.push([]);
-            if(schema && (schema.id || schema.root)) {
+            if (schema && (schema.id || schema.root)) {
                 stack.push( schema );
                 result = options.fn(this);
                 stack.pop();
@@ -70,9 +75,9 @@ module.exports = function (opt) {
         Handlebars.registerHelper('desc', function (schema) {
             var description = schema.description;
 
-            if( !description ) return "";
+            if ( !description ) return "";
             var text = description;
-            if(marked) {
+            if (marked) {
                 marked.setOptions({gfm: true, breaks: true});
                 return new Handlebars.SafeString(marked(text));
             } else {
@@ -83,7 +88,7 @@ module.exports = function (opt) {
         Handlebars.registerHelper('equals', function (lvalue, rvalue, options) {
             if (arguments.length < 3)
                 throw new Error("Handlebars Helper equals needs 2 parameters");
-            if( lvalue!=rvalue ) {
+            if ( lvalue != rvalue ) {
                 return options.inverse(this);
             } else {
                 return options.fn(this);
@@ -91,19 +96,19 @@ module.exports = function (opt) {
         });
 
         Handlebars.registerHelper('contains', function (arr, item, options) {
-            if(arr && arr instanceof Array && arr.indexOf(item) != -1) {
+            if (arr && arr instanceof Array && arr.indexOf(item) != -1) {
                 return options.fn(this);
             }
         });
 
         Handlebars.registerHelper('primitive', function (schema, options) {
-            if(schema.type && schema.type != "object" && schema.type != "array" || schema.enum) {
+            if (schema.type && schema.type != "object" && schema.type != "array" || schema.enum) {
                 return withType(this, options, true);
             }
         });
 
         Handlebars.registerHelper('exists', function (value, options) {
-            if(value !== undefined) {
+            if (value !== undefined) {
                 value = value === null ? "null": value;
                 value = value === true ? "true": value;
                 value = value === false ? "false": value;
@@ -117,10 +122,10 @@ module.exports = function (opt) {
 
         Handlebars.registerHelper('range', function (from, to, replFrom, replTo, exclFrom, exclTo, sep) {
             var result = "";
-            if(from !== undefined || to !== undefined) {
+            if (from !== undefined || to !== undefined) {
                 result += exclFrom ? "]" : "[";
                 result += from !== undefined ? from : replFrom;
-                if( (from || replFrom) !== (to || replTo)) {
+                if ( (from || replFrom) !== (to || replTo)) {
                     result += (from !== undefined || replFrom !== null) && (to !== undefined || replTo !== null) ? sep : "";
                     result += to !== undefined ? to : replTo;
                 }
@@ -134,38 +139,38 @@ module.exports = function (opt) {
         };
 
         Handlebars.registerHelper('sub', function (schema, options) {
-            if(sub(schema) || (schema.type && schema.type != "object" && schema.type != "array") || schema.enum) {
+            if (sub(schema) || (schema.type && schema.type != "object" && schema.type != "array") || schema.enum) {
                 return options.fn(this);
             }
         });
 
         Handlebars.registerHelper('main', function (schema, options) {
-            if(!sub(schema)) {
+            if (!sub(schema)) {
                 return options.fn(this);
             }
         });
 
         var simpleSchema = function (schema) {
-            var result = schema.description===undefined && schema.title===undefined && schema.id===undefined;
-            result &= schema.properties===undefined;
+            var result = schema.description === undefined && schema.title === undefined && schema.id === undefined;
+            result &= schema.properties === undefined;
             return result;
         };
 
         Handlebars.registerHelper('simple', function (schema, options) {
-            if(simpleSchema(schema) && !schema.$ref) {
+            if (simpleSchema(schema) && !schema.$ref) {
                 return withType(schema, options, true);
             }
         });
 
         var withType = function (schema, options, hideAny) {
             schema.__type = schema.type;
-            if(!schema.type && !hideAny) {
-                schema.__type="any";
+            if (!schema.type && !hideAny) {
+                schema.__type = "any";
             }
-            if(schema.format) {
-                schema.__type=schema.format;
+            if (schema.format) {
+                schema.__type = schema.format;
             }
-            if( (schema.__type == "any" || schema.__type == "object") && schema.title) {
+            if ( (schema.__type == "any" || schema.__type == "object") && schema.title) {
                 schema.__type = schema.title;
             }
             var result = options.fn(schema);
@@ -174,53 +179,53 @@ module.exports = function (opt) {
         };
 
         Handlebars.registerHelper('complex', function (schema, options) {
-            if(!simpleSchema(schema) && !schema.$ref && !schema.__blank || schema.properties) {
+            if (!simpleSchema(schema) && !schema.$ref && !schema.__blank || schema.properties) {
                 return withType(schema, options);
             }
         });
 
         Handlebars.registerHelper('enum', function (schema) {
-            if(schema.enum) {
+            if (schema.enum) {
                 return (schema.enum.length > 1) ? "enum": "constant";
             }
         });
 
         Handlebars.registerHelper('obj', function (schema, options) {
-            if(schema.properties || schema.type == "object") {
+            if (schema.properties || schema.type == "object") {
                 return withType(schema, options);
             }
         });
 
         var pushBox = function (schema) {
-            boxes[boxes.length-1].push(schema);
+            boxes[boxes.length - 1].push(schema);
         };
 
         Handlebars.registerHelper('box', function (schema, options) {
-            if(schema) {
+            if (schema) {
                 pushBox(schema);
                 return options.fn(schema);
             }
         });
 
         Handlebars.registerHelper('boxId', function () {
-            return boxes[boxes.length-1].length;
+            return boxes[boxes.length - 1].length;
         });
 
         Handlebars.registerHelper('boxes', function (options) {
-            var result="";
-            opt.$.each(boxes[boxes.length-1], function (k, box) {
-                box.__boxId = k+1;
-                result=result+options.fn(box);
+            var result = "";
+            opt.$.each(boxes[boxes.length - 1], function (k, box) {
+                box.__boxId = k + 1;
+                result = result + options.fn(box);
             });
-            boxes[boxes.length-1] = [];
+            boxes[boxes.length - 1] = [];
             return result;
         });
 
         var resolveIdRef = function (ref) {
-            if(stack) {
+            if (stack) {
                 var i;
-                for(i=stack.length-1; i>=0; i--) {
-                    if(stack[i][ref]) {
+                for(i = stack.length - 1; i >= 0; i--) {
+                    if (stack[i][ref]) {
                         return stack[i][ref];
                     }
                 }
@@ -230,7 +235,7 @@ module.exports = function (opt) {
 
         var resolvePointerRef = function (ref) {
             var root = stack[1];
-            if(ref=="#") {
+            if (ref == "#") {
                 return root;
             }
             try {
@@ -242,10 +247,10 @@ module.exports = function (opt) {
         };
 
         var resolveRef = function (ref) {
-            if(ref.indexOf("#") == 0) {
+            if (ref.indexOf("#") == 0) {
                 return resolvePointerRef(ref);
             } else {
-                if(ref.indexOf("http") == 0) {
+                if (ref.indexOf("http") == 0) {
                     var value = resolveIdRef(ref);
                     if (!value) {
                         var request = require('sync-request');
@@ -261,7 +266,7 @@ module.exports = function (opt) {
         };
 
         var getName = function (schema) {
-            if(!schema) {
+            if (!schema) {
                 return "<error>";
             }
             var name = schema.title;
@@ -272,27 +277,27 @@ module.exports = function (opt) {
 
         Handlebars.registerHelper('name', function (schema, options) {
             schema.__name = getName(schema);
-            if(schema.__name) {
+            if (schema.__name) {
                 return options.fn(schema);
             }
         });
 
         var refName = function (ref) {
             var name = getName(resolveRef(ref));
-            if(!name) {
-                if(ref == "#") {
+            if (!name) {
+                if (ref == "#") {
                     name = "<root>";
                 } else {
                     name = ref.replace("#", "/");
                 }
             }
             var segments = name.split("/");
-            name = segments[segments.length-1];
+            name = segments[segments.length - 1];
             return name;
         };
 
         var renderSchema = function (schema) {
-            if(stack.indexOf(schema) == -1) { // avoid recursion
+            if (stack.indexOf(schema) == -1) { // avoid recursion
                 stack.push(schema);
                 var ret = new Handlebars.SafeString(boxTemplate(schema));
                 stack.pop();
@@ -303,19 +308,19 @@ module.exports = function (opt) {
         };
 
         Handlebars.registerHelper('ref', function (schema, options) {
-            if(schema.$ref) {
+            if (schema.$ref) {
                 var target = resolveRef(schema.$ref);
-                if(target) {
+                if (target) {
                     target.__name = refName(schema.$ref);
                     target.__ref = schema.$ref.replace("#", "");
                 }
                 var result;
-                if(target) {
+                if (target) {
                     result = options.fn(target);
                 } else {
-                    result = new Handlebars.SafeString("<span class='signature-type-ref'>"+schema.$ref+"</span>");
+                    result = new Handlebars.SafeString("<span class = 'signature-type-ref'>" + schema.$ref + "</span>");
                 }
-                if(target) {
+                if (target) {
                     delete target.__ref;
                 }
                 return result;
@@ -327,7 +332,7 @@ module.exports = function (opt) {
         });
 
         Handlebars.registerHelper('signature', function (schema, keyword, schemas) {
-            if(!schemas) {
+            if (!schemas) {
                 schemas = [];
             }
             schemas = schemas instanceof Array ? schemas : [schemas];
@@ -340,13 +345,13 @@ module.exports = function (opt) {
 
         /* CUSTOM START */
         Handlebars.registerHelper('pill', function (schema, options) {
-            if(schema.__blank && schema.title) {
+            if (schema.__blank && schema.title) {
                 return options.fn(this);
             }
         });
 
         Handlebars.registerHelper('mini', function (val, options) {
-            if(val) {
+            if (val) {
                 return options.fn(this);
             }
         });
@@ -474,29 +479,29 @@ module.exports = function (opt) {
         /* CUSTOM END */
 
         var init = function () {
-            boxTemplate=Handlebars.compile(fs.readFileSync(__dirname+"/templates/box.html","utf8"));
-            containerTemplate=Handlebars.compile(fs.readFileSync(__dirname+"/templates/container.html","utf8"));
-            signatureTemplate=Handlebars.compile(fs.readFileSync(__dirname+"/templates/signature.html","utf8"));
+            boxTemplate = Handlebars.compile(fs.readFileSync(__dirname + "/templates/box.html","utf8"));
+            containerTemplate = Handlebars.compile(fs.readFileSync(__dirname + "/templates/container.html","utf8"));
+            signatureTemplate = Handlebars.compile(fs.readFileSync(__dirname + "/templates/signature.html","utf8"));
             ready.resolve();
         };
 
         docson.doc = function (schema, element, ref, baseUrl) {
             if (schema) {
                 var d = opt.$.Deferred();
-                if(baseUrl === undefined) baseUrl='';
+                if (baseUrl === undefined) baseUrl = '';
                 init();
                 ready.done(function () {
                     if (!element) {
-                        element=opt.document.createElement("DIV");
+                        element = opt.document.createElement("DIV");
                         opt.document.body.appendChild(element);
                     } else {
                         if (typeof element == "string") {
-                            element='#'+element;
+                            element = '#' + element;
                         }
                     }
-                    element=opt.$(element);
+                    element = opt.$(element);
                     console.log(element.get(0));
-                    if(typeof schema == "string") {
+                    if (typeof schema == "string") {
                         schema = JSON.parse(schema);
                     }
 
@@ -507,8 +512,8 @@ module.exports = function (opt) {
                     var renderBox = function () {
                         stack.push(refs);
                         var target = schema;
-                        if(ref) {
-                            ref = ref[0] !== '/' ? '/'+ref : ref;
+                        if (ref) {
+                            ref = ref[0] !== '/' ? '/' + ref : ref;
                             target = jsonpointer.get(schema, ref);
                             stack.push( schema );
                         }
@@ -517,7 +522,7 @@ module.exports = function (opt) {
                         prerender(target);
                         var html = boxTemplate(target);
 
-                        if(ref) {
+                        if (ref) {
                             stack.pop();
                         }
                         stack.pop();
@@ -526,7 +531,7 @@ module.exports = function (opt) {
 
                         var resizeHandler = element.get(0).onresize;
                         function resized() {
-                            if(resizeHandler) {
+                            if (resizeHandler) {
                                 var box = element.find(".box").first();
                                 element.get(0).onresize(box.outerWidth(), box.outerHeight());
                             }
@@ -534,23 +539,23 @@ module.exports = function (opt) {
                         element.get(0).resized = resized;
                         resized();
 
-                        if(highlight) {
+                        if (highlight) {
                             element.find(".json-schema").each(function (k, schemaElement) {
                                 highlight.highlightSchema(schemaElement);
                             });
                         }
                         element.find(".box-title").each(function () {
                             var ref = opt.$(this).attr("ref");
-                            if(ref) {
-                                if(window.location.href.indexOf("docson/index.html") > -1) {
+                            if (ref) {
+                                if (window.location.href.indexOf("docson/index.html") > -1) {
                                     opt.$(this).find(".box-name").css("cursor", "pointer").attr("title", "Open in new window")
                                     .hover(
                                         function (){ opt.$(this).addClass('link'); },
                                         function (){ opt.$(this).removeClass('link'); })
                                     .click(function () {
-                                            var url = window.location.href+"$$expand";
-                                            if(ref !=="<root>") {
-                                            url = url.replace(/(docson\/index.html#[^\$]*).*/, "$1$"+ref+"$$expand");
+                                            var url = window.location.href + "$$expand";
+                                            if (ref !== "<root>") {
+                                            url = url.replace(/(docson\/index.html#[^\$]*).*/, "$1$" + ref + "$$expand");
                                             }
                                             var w;
                                             function receiveMessage(event) {
@@ -564,118 +569,6 @@ module.exports = function (opt) {
                                 }
                             }
                         });
-                        if (!opt.document.getElementById('docson-js')) {
-                            var script = opt.document.createElement("SCRIPT");
-                            script.id = 'docson-js';
-                            script.type = 'text/javascript';
-                            script.innerHTML = "\n" +
-                                               "        function getByClass(element, className, callback) {\n" +
-                                               "            var elements = element.getElementsByClassName(className);\n" +
-                                               "            for (var e = 0; e < elements.length; ++e) {\n" +
-                                               "                callback(elements[e]);\n" +
-                                               "            }\n" +
-                                               "        }\n" +
-                                               "\n" +
-                                               "        function deSelect() {\n" +
-                                               "            getByClass(document, \'box-selected\', function (selected) {\n" +
-                                               "                if (selected) {\n" +
-                                               "                    selected.className = selected.className.replace(\' box-selected\', \'\');\n" +
-                                               "                }\n" +
-                                               "            });\n" +
-                                               "        }\n" +
-                                               "\n" +
-                                               "        function displayButtons(element, display) {\n" +
-                                               "            element.getElementsByClassName(\'source-button\')[0].style.display = display;\n" +
-                                               "            element.getElementsByClassName(\'expand-button\')[0].style.display = display;\n" +
-                                               "        }\n" +
-                                               "\n" +
-                                               "        function toggleClass(element, cssClass) {\n" +
-                                               "            if (element.className.indexOf(cssClass) > -1) {\n" +
-                                               "                element.className = element.className.replace(cssClass, \"\");\n" +
-                                               "            } else {\n" +
-                                               "                element.className += \" \" + cssClass;\n" +
-                                               "            }\n" +
-                                               "        }\n" +
-                                               "\n" +
-                                               "        function toggleDisplay(element) {\n" +
-                                               "            var display = element.currentStyle ? element.currentStyle.display : getComputedStyle(element, null).display;\n" +
-                                               "            if (display == \'\' || display == \'block\') {\n" +
-                                               "                element.style.display = \'none\';\n" +
-                                               "            } else {\n" +
-                                               "                element.style.display = \'block\';\n" +
-                                               "            }\n" +
-                                               "        }\n" +
-                                               "\n" +
-                                               "        function expand(element) {\n" +
-                                               "            var boxId = element.getAttribute(\"boxid\");\n" +
-                                               "            toggleClass(element, \"signature-type-expanded\");\n" +
-                                               "            var bc = element.parentElement.parentElement.parentElement.getElementsByClassName(\"signature-box-container\")[0];\n" +
-                                               "            var boxes = bc.children;\n" +
-                                               "            for (var b = 0; b < boxes.length; ++b) {\n" +
-                                               "                if (boxes[b].getAttribute(\"boxid\") == boxId) {\n" +
-                                               "                    toggleDisplay(boxes[b]);\n" +
-                                               "                    break;\n" +
-                                               "                }\n" +
-                                               "            }\n" +
-                                               "        }\n" +
-                                               "\n" +
-                                               "        function setDisplay(element, display) {\n" +
-                                               "            element.style.display = display;\n" +
-                                               "        }\n" +
-                                               "\n" +
-                                               "        function setClass(element, className, remove) {\n" +
-                                               "            if (!remove) {\n" +
-                                               "                if (element.className.indexOf(className) == -1) {\n" +
-                                               "                    element.className += \" \" + className;\n" +
-                                               "                }\n" +
-                                               "            } else {\n" +
-                                               "                if (element.className.indexOf(className) > -1) {\n" +
-                                               "                    element.className = element.className.replace(className, \"\");\n" +
-                                               "                }\n" +
-                                               "            }\n" +
-                                               "        }\n" +
-                                               "\n" +
-                                               "        function expandButton(element) {\n" +
-                                               "            if(element.getAttribute(\"expanded\")) {\n" +
-                                               "                var parent = element.parentElement.parentElement;\n" +
-                                               "                getByClass(parent, \"expand-button\", function (eb) {\n" +
-                                               "                    eb.innerHTML = \" + \";\n" +
-                                               "                    eb.setAttribute(\"title\", \"Expand all\");\n" +
-                                               "                });\n" +
-                                               "                getByClass(parent, \"signature-type-expandable\", function (ste) {\n" +
-                                               "                    setClass(ste, \"signature-type-expanded\", true);\n" +
-                                               "                });\n" +
-                                               "                getByClass(parent, \"box-container\", function (ste) {\n" +
-                                               "                    setDisplay(ste, \'none\');\n" +
-                                               "                });\n" +
-                                               "                element.removeAttribute(\"expanded\");\n" +
-                                               "            } else {\n" +
-                                               "                var parent = element.parentElement.parentElement;\n" +
-                                               "                getByClass(parent, \"expand-button\", function (eb) {\n" +
-                                               "                    eb.innerHTML = \" - \";\n" +
-                                               "                    eb.setAttribute(\"title\", \"Collapse all\");\n" +
-                                               "                });\n" +
-                                               "                getByClass(parent, \"signature-type-expandable\", function (ste) {\n" +
-                                               "                    setClass(ste, \"signature-type-expanded\");\n" +
-                                               "                });\n" +
-                                               "                getByClass(parent, \"box-container\", function (ste) {\n" +
-                                               "                    setDisplay(ste, \'block\');\n" +
-                                               "                });\n" +
-                                               "                element.setAttribute(\"expanded\", true);\n" +
-                                               "            }\n" +
-                                               "        }\n" +
-                                               "\n" +
-                                               "        function sourceButton(element) {\n" +
-                                               "            getByClass(element.parentElement, \"box-body\", function (bb) {\n" +
-                                               "                toggleDisplay(bb);\n" +
-                                               "            });\n" +
-                                               "            getByClass(element.parentElement, \"source\", function (source) {\n" +
-                                               "                toggleDisplay(source);\n" +
-                                               "            });\n" +
-                                               "        }\n" +
-                                               "";
-                            opt.document.getElementsByTagName('head')[0].appendChild(script);
-                        }
                         element.find(".box").attr("onmousedown", "deSelect(); this.className += ' box-selected'; event.preventDefault(); return false;");
                         element.find("body").attr("onmousedown", "deSelect();");
                         element.find(".box").attr("onmouseenter", "displayButtons(this, 'block');");
@@ -688,22 +581,22 @@ module.exports = function (opt) {
                     var resolveRefsReentrant = function (schema){
                         traverse(schema).forEach(function (item) {
                             // Fix Swagger weird generation for array.
-                            if(item && item.$ref == "array") {
+                            if (item && item.$ref == "array") {
                                 delete item.$ref;
-                                item.type ="array";
+                                item.type = "array";
                             }
 
                             // Fetch external schema
-                            if(this.key === "$ref") {
+                            if (this.key === "$ref") {
                                 var external = false;
                                 //Local meaning local to this server, but not in this file.
                                 var local = false;
-                                if((/^https?:\/\//).test(item)) {
+                                if ((/^https?:\/\//).test(item)) {
                                     external = true;
                                 }
-                                else if((/^[^#]/).test(item)) {
+                                else if ((/^[^#]/).test(item)) {
                                     local = true;
-                                } else if(item.indexOf('#') > 0) {
+                                } else if (item.indexOf('#') > 0) {
                                     //Internal reference
                                     //Turning relative refs to absolute ones
                                     external = true;
@@ -711,36 +604,36 @@ module.exports = function (opt) {
                                     this.update(item);
                                 }
                                 var segments = item.split("#");
-                                if(external){
+                                if (external){
                                     //External reference, fetch it.
                                     refs[item] = null;
                                     opt.$.get(segments[0]).then(function (content) {
-                                        if(typeof content != "object") {
+                                        if (typeof content != "object") {
                                             try {
                                                 content = JSON.parse(content);
                                             } catch(e) {
-                                                console.error("Unable to parse "+segments[0], e);
+                                                console.error("Unable to parse " + segments[0], e);
                                             }
                                         }
-                                        if(content) {
+                                        if (content) {
                                             refs[item] = content;
                                             renderBox();
                                             resolveRefsReentrant(content);
                                         }
                                     });
                                 }
-                                else if(local) {
+                                else if (local) {
                                     //Local to this server, fetch relative
                                     refs[item] = null;
                                     opt.$.get(baseUrl + segments[0]).then(function (content) {
-                                        if(typeof content != "object") {
+                                        if (typeof content != "object") {
                                             try {
                                                 content = JSON.parse(content);
                                             } catch(e) {
-                                                console.error("Unable to parse "+segments[0], e);
+                                                console.error("Unable to parse " + segments[0], e);
                                             }
                                         }
-                                        if(content) {
+                                        if (content) {
                                             refs[item] = content;
                                             renderBox();
                                             resolveRefsReentrant(content);
