@@ -65,15 +65,17 @@ module.exports = function (opt) {
         });
 
         Handlebars.registerHelper('source', function (schema) {
-            delete schema.root;
-            delete schema.__boxId;
-            delete schema.__name;
-            delete schema.__ref;
-            return JSON.stringify(schema, null, 2);
+            if (schema) {
+                delete schema.root;
+                delete schema.__boxId;
+                delete schema.__name;
+                delete schema.__ref;
+                return JSON.stringify(schema, null, 2);
+            }
         });
 
         Handlebars.registerHelper('desc', function (schema) {
-            var description = schema.description;
+            var description = (schema ? schema.description : false);
 
             if ( !description ) return "";
             var text = description;
@@ -102,7 +104,7 @@ module.exports = function (opt) {
         });
 
         Handlebars.registerHelper('primitive', function (schema, options) {
-            if (schema.type && schema.type != "object" && schema.type != "array" || schema.enum) {
+            if (schema && (schema.type && schema.type != "object" && schema.type != "array" || schema.enum)) {
                 return withType(this, options, true);
             }
         });
@@ -135,7 +137,7 @@ module.exports = function (opt) {
         });
 
         var sub = function (schema) {
-            return schema.type == "array" || schema.allOf || schema.anyOf || schema.oneOf || schema.not;
+            return schema && (schema.type == "array" || schema.allOf || schema.anyOf || schema.oneOf || schema.not);
         };
 
         Handlebars.registerHelper('sub', function (schema, options) {
@@ -151,9 +153,11 @@ module.exports = function (opt) {
         });
 
         var simpleSchema = function (schema) {
-            var result = schema.description === undefined && schema.title === undefined && schema.id === undefined;
-            result &= schema.properties === undefined;
-            return result;
+            if (schema) {
+                var result = schema.description === undefined && schema.title === undefined && schema.id === undefined;
+                result &= schema.properties === undefined;
+                return result;
+            }
         };
 
         Handlebars.registerHelper('simple', function (schema, options) {
@@ -163,19 +167,21 @@ module.exports = function (opt) {
         });
 
         var withType = function (schema, options, hideAny) {
-            schema.__type = schema.type;
-            if (!schema.type && !hideAny) {
-                schema.__type = "any";
+            if (schema) {
+                schema.__type = schema.type;
+                if (!schema.type && !hideAny) {
+                    schema.__type = "any";
+                }
+                if (schema.format) {
+                    schema.__type = schema.format;
+                }
+                if ( (schema.__type == "any" || schema.__type == "object") && schema.title) {
+                    schema.__type = schema.title;
+                }
+                var result = options.fn(schema);
+                delete schema.__type;
+                return result;
             }
-            if (schema.format) {
-                schema.__type = schema.format;
-            }
-            if ( (schema.__type == "any" || schema.__type == "object") && schema.title) {
-                schema.__type = schema.title;
-            }
-            var result = options.fn(schema);
-            delete schema.__type;
-            return result;
         };
 
         Handlebars.registerHelper('complex', function (schema, options) {
@@ -185,19 +191,21 @@ module.exports = function (opt) {
         });
 
         Handlebars.registerHelper('enum', function (schema) {
-            if (schema.enum) {
+            if (schema && schema.enum) {
                 return (schema.enum.length > 1) ? "enum": "constant";
             }
         });
 
         Handlebars.registerHelper('obj', function (schema, options) {
-            if (schema.properties || schema.type == "object") {
+            if (schema && (schema.properties || schema.type == "object")) {
                 return withType(schema, options);
             }
         });
 
         var pushBox = function (schema) {
-            boxes[boxes.length - 1].push(schema);
+            if (schema) {
+                boxes[boxes.length - 1].push(schema);
+            }
         };
 
         Handlebars.registerHelper('box', function (schema, options) {
@@ -276,9 +284,11 @@ module.exports = function (opt) {
         };
 
         Handlebars.registerHelper('name', function (schema, options) {
-            schema.__name = getName(schema);
-            if (schema.__name) {
-                return options.fn(schema);
+            if (schema) {
+                schema.__name = getName(schema);
+                if (schema.__name) {
+                    return options.fn(schema);
+                }
             }
         });
 
@@ -297,18 +307,20 @@ module.exports = function (opt) {
         };
 
         var renderSchema = function (schema) {
-            if (stack.indexOf(schema) == -1) { // avoid recursion
-                stack.push(schema);
-                var ret = new Handlebars.SafeString(boxTemplate(schema));
-                stack.pop();
-                return ret;
-            } else {
-                return new Handlebars.SafeString(boxTemplate({"description": "_circular reference_"}));
+            if (schema) {
+                if (stack.indexOf(schema) == -1) { // avoid recursion
+                    stack.push(schema);
+                    var ret = new Handlebars.SafeString(boxTemplate(schema));
+                    stack.pop();
+                    return ret;
+                } else {
+                    return new Handlebars.SafeString(boxTemplate({"description": "_circular reference_"}));
+                }
             }
         };
 
         Handlebars.registerHelper('ref', function (schema, options) {
-            if (schema.$ref) {
+            if (schema && schema.$ref) {
                 var target = resolveRef(schema.$ref);
                 if (target) {
                     target.__name = refName(schema.$ref);
@@ -332,11 +344,13 @@ module.exports = function (opt) {
         });
 
         Handlebars.registerHelper('signature', function (schema, keyword, schemas) {
-            if (!schemas) {
-                schemas = [];
+            if (schema) {
+                if (!schemas) {
+                    schemas = [];
+                }
+                schemas = schemas instanceof Array ? schemas : [schemas];
+                return new Handlebars.SafeString(signatureTemplate({ schema: schema, keyword: keyword, schemas: schemas}));
             }
-            schemas = schemas instanceof Array ? schemas : [schemas];
-            return new Handlebars.SafeString(signatureTemplate({ schema: schema, keyword: keyword, schemas: schemas}));
         });
 
         Handlebars.registerHelper('l', function (context) {
@@ -345,7 +359,7 @@ module.exports = function (opt) {
 
         /* CUSTOM START */
         Handlebars.registerHelper('pill', function (schema, options) {
-            if (schema.__blank && schema.title) {
+            if (schema && schema.__blank && schema.title) {
                 return options.fn(this);
             }
         });
@@ -357,10 +371,12 @@ module.exports = function (opt) {
         });
 
         Handlebars.registerHelper('container', function (schema, useResolved) {
-            if (useResolved && schema.__resolved) {
-                return new Handlebars.SafeString(containerTemplate(schema.__resolved));
-            } else {
-                return new Handlebars.SafeString(containerTemplate(schema));
+            if (schema) {
+                if (useResolved && schema.__resolved) {
+                    return new Handlebars.SafeString(containerTemplate(schema.__resolved));
+                } else {
+                    return new Handlebars.SafeString(containerTemplate(schema));
+                }
             }
         });
 
@@ -392,12 +408,12 @@ module.exports = function (opt) {
         };
 
         var isMergeable = function (schema) {
-            return schema.type === 'object';
+            return schema && schema.type === 'object';
         };
 
         //Combine this schema with the resolved schemas for each of its "allOf" children
         var resolve = function (schema) {
-            if (schema.__resolved) {
+            if (!schema || schema.__resolved) {
                 return;
             } else if (schema.$ref) {
                 resolve(resolveRef(schema.$ref));
@@ -468,13 +484,15 @@ module.exports = function (opt) {
         };
 
         var prerender = function (schema) {
-            var walked;
-            stack.push(schema);
-            walked = walk(schema);
-            console.log('Pre-processed schema: ');
-            console.log(walked);
-            stack.pop();
-            return walked;
+            if (schema) {
+                var walked;
+                stack.push(schema);
+                walked = walk(schema);
+                console.log('Pre-processed schema: ');
+                console.log(walked);
+                stack.pop();
+                return walked;
+            }
         };
         /* CUSTOM END */
 
@@ -653,7 +671,7 @@ module.exports = function (opt) {
                 if (!element.ownerDocument) {
                     element.ownerDocument = opt.document;
                 }
-                return element;
+                return element[0];
             } else {
                 return null;
             }

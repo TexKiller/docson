@@ -9,9 +9,10 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "cd tests && node test.js && cd ..",
-    "test-browserify": "browserify tests/test-browser.js -o tests/test-browserify-bundle.js",
-    "test-webpack": "./node_modules/.bin/webpack tests/test-browser.js tests/test-webpack-bundle.js",
+    "test": "node tests/test.js",
+    "test-browserify": "browserify -t [ uglifyify -x .js -x .coffee ] tests/test-bundle.js | uglifyjs -c > tests/test-browserify-bundle.min.js",
+    "test-webpack": "./node_modules/.bin/webpack tests/test-bundle.js tests/test-webpack-bundle.min.js",
+    "build": "./node_modules/.bin/webpack dist/node-docson.min.js",
     "prepare": "require-self"
   },
   "repository": {
@@ -41,6 +42,7 @@
     "jquery": "^2.2.2",
     "require-self": "^0.1.0",
     "transform-loader": "^0.2.4",
+    "uglifyify": "^4.0.2",
     "webpack": "^3.1.0"
   },
   "dependencies": {

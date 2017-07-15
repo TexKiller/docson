@@ -11,7 +11,7 @@ tests.forEach(function (test) {
   title.textContent = segments[0];
   document.body.appendChild(title);
   document.body.appendChild(block);
-  JSON.parse(fs.readFileSync("./" + segments[0] + ".json", "utf8")).forEach(function (item) {
+  JSON.parse(fs.readFileSync(__dirname + "/" + segments[0] + ".json", "utf8")).forEach(function (item) {
     var element = document.createElement("div");
     block.appendChild(element);
     if (!item.schema.description) {
@@ -21,4 +21,4 @@ tests.forEach(function (test) {
   });
 });
 
-fs.writeFileSync("./test.html", document.documentElement.outerHTML, "utf8");
+fs.writeFileSync(__dirname + "/test.html", document.documentElement.outerHTML, "utf8");
