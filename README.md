@@ -20,9 +20,9 @@ Give Node-Docson a JSON schema and it will generate a [beautiful documentation](
 Node example:
 
 ```js
-var docson=require("node-docson")();
+var docson = require("node-docson")();
 
-var schema={
+var schema = {
   "title": "Example Schema",
   "type": "object",
   "properties": {
@@ -55,7 +55,7 @@ Browser example:
         </title>
         <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
         <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
-        <script type="text/javascript" src="https://github.com/TexKiller/node-docson/releases/download/v0.4.2/node-docson.min.js"></script>
+        <script type="text/javascript" src="https://github.com/TexKiller/node-docson/releases/download/v0.4.3/node-docson.min.js"></script>
     </head>
     <body>
         <div id="element"></div>
@@ -89,23 +89,29 @@ Browser example:
 
 ## API
 
+Requiring Node-Docson:
 ```javascript
-var docson = require("node-docson")(opt);
+var nodeDocson = require("node-docson");
 ```
+* Not required if including the Node-Docson release script on the browser using the `script` HTML tag.
 
-* `opt` (optional) is an object holding the following properties. If not set, the default values for each property will be used.
+Creating Docson instance:
+```javascript
+var docson = nodeDocson(opt);
+```
+* `opt` (optional) is an object holding the following properties. If not set, the default value for each property will be used.
 * `opt.document` (optional) specifies the document node that will hold the documentation. If not set, [JSDOM](https://github.com/tmpvar/jsdom) will be used to create one on Node.js, and the global `document` variable will be used on the browser.
 * `opt.$` (optional) specifies the [jQuery](https://github.com/jquery/jquery) instance. If not set, an instance will be created using `require('jquery')(opt.document.defaultView)` on Node.js, and the global `$` variable will be used on the browser.
 
+Documenting a JSON Schema:
 ```javascript
-var returnedElement = docson.doc(schema, element, ref);
+var domElement = docson.doc(schema, element, ref);
 ```
-
-* `schema` is the URI or path to the schema or a string containing the schema source itself.
+* `schema` is the URI or path to the JSON Schema or a string containing the schema source itself.
 * `element` (optional) is the element which will host the documentation. Either a DOM element (id or object) or jQuery element.
 * `ref` (optional) is an json-pointer path to a sub-schema.
 
-* `returnedElement` is the DOM element that holds the documentation for the specified schema, or `null` on failure.
+* `domElement` is the DOM element that holds the documentation for the specified schema, or `null` on failure.
 
 
 ## Limitations
