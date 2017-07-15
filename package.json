@@ -1,6 +1,6 @@
 {
   "name": "node-docson",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "Documentation for your JSON types on node",
   "main": "index.js",
   "browser": "node-docson.js",
