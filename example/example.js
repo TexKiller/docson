@@ -1,4 +1,5 @@
-var docson = require("node-docson")();
+var nodeDocson = require("node-docson");
+var docson = nodeDocson();
 var fs = require("fs");
 
 var schema = {

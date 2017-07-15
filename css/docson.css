@@ -136,10 +136,10 @@
 
 .docson .property-name {
     float: left;
-    width:100%;
     font-family: "Lucida Console", Monaco, monospace;
     min-width: 130px;
     position: relative;
+    padding-right: 40px;
 }
 
 .docson .property-name:after {
@@ -196,7 +196,6 @@
 .docson .signature-type {
     padding-left: 6px;
     float: left;
-    width:100%;
     min-width: 160px;
     line-height: 220%;
 }

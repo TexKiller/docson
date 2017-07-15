@@ -504,28 +504,32 @@ module.exports = function (opt) {
         };
 
         docson.doc = function (schema, element, ref, baseUrl) {
+            if (typeof schema == "string") {
+                try {
+                    schema = JSON.parse(schema);
+                } catch (e) {
+                    console.log('Invalid JSON Schema: ');
+                    console.log(schema);
+                    schema = undefined;
+                }
+            }
             if (schema) {
                 var d = opt.$.Deferred();
                 if (baseUrl === undefined) baseUrl = '';
                 init();
                 ready.done(function () {
-                    if (!element) {
-                        element = opt.document.createElement("DIV");
-                        opt.document.body.appendChild(element);
-                    } else {
-                        if (typeof element == "string") {
-                            element = '#' + element;
-                        }
+                    if (typeof element == "string") {
+                        element = '#' + element;
                     }
                     element = opt.$(element);
-                    console.log(element.get(0));
-                    if (typeof schema == "string") {
-                        schema = JSON.parse(schema);
+                    if (!element.length) {
+                        element = opt.document.createElement("div");
+                        opt.document.body.appendChild(element);
+                        element = opt.$(element);
                     }
 
                     var refsPromise = opt.$.Deferred().resolve().promise();
                     var refs = {};
-
 
                     var renderBox = function () {
                         stack.push(refs);
