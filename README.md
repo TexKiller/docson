@@ -55,7 +55,7 @@ Browser example:
         </title>
         <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
         <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
-        <script type="text/javascript" src="https://github.com/TexKiller/node-docson/releases/download/v0.4.3/node-docson.min.js"></script>
+        <script type="text/javascript" src="https://github.com/TexKiller/node-docson/releases/download/v0.4.6/node-docson.min.js"></script>
     </head>
     <body>
         <div id="element"></div>
@@ -89,11 +89,11 @@ Browser example:
 
 ## API
 
-Requiring Node-Docson:
+Requiring Node-Docson (Node.js only):
 ```javascript
 var nodeDocson = require("node-docson");
 ```
-* Not required if including the Node-Docson release script on the browser using the `script` HTML tag.
+* Not necessary if including the Node-Docson release script on the browser using the `script` HTML tag.
 
 Creating Docson instance:
 ```javascript
